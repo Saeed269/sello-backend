@@ -1,10 +1,11 @@
-const jwt = require('jsonwebtoken');
+const { createRemoteJWKSet, jwtVerify } = require('jose');
 
-/**
- * Middleware que verifica el JWT de Supabase en cada petición.
- * El token viene en el header: Authorization: Bearer <token>
- */
-const authMiddleware = (req, res, next) => {
+// URL pública del JWKS de Supabase para verificar tokens ECC (P-256)
+const JWKS = createRemoteJWKSet(
+  new URL(`https://slcgqgkvalliqcxpkgyp.supabase.co/auth/v1/.well-known/jwks.json`)
+);
+
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -14,17 +15,17 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET);
+    const { payload } = await jwtVerify(token, JWKS);
 
     req.user = {
-      id: decoded.sub,
-      email: decoded.email,
-      role: decoded.role,
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
     };
 
     next();
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
+    if (err.code === 'ERR_JWT_EXPIRED') {
       return res.status(401).json({ error: 'Token expirado' });
     }
     return res.status(401).json({ error: 'Token inválido' });
