@@ -40,9 +40,9 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { nombre, tipo, num_sellos, premio, premios, diseno, caducidad_meses, telefono, direccion } = req.body;
 
-  if (!nombre || !tipo || !num_sellos) {
-    return res.status(400).json({ error: 'nombre, tipo y num_sellos son obligatorios' });
-  }
+  if (!nombre) {
+  return res.status(400).json({ error: 'nombre es obligatorio' });
+}
 
   try {
     const result = await pool.query(
