@@ -38,18 +38,19 @@ router.get('/:id', async (req, res) => {
 
 // Crear un negocio
 router.post('/', async (req, res) => {
-  const { nombre, tipo, num_sellos, premio, premios, diseno, caducidad_meses, telefono, direccion } = req.body;
+  const { nombre, email, tipo, num_sellos, premio, premios, diseno, caducidad_meses, telefono, direccion } = req.body;
 
   if (!nombre) {
-  return res.status(400).json({ error: 'nombre es obligatorio' });
-}
+    return res.status(400).json({ error: 'nombre es obligatorio' });
+  }
 
   try {
     const result = await pool.query(
-      `INSERT INTO negocios (user_id, nombre, tipo, num_sellos, premio, premios, diseno, caducidad_meses, telefono, direccion)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-      [req.user.id, nombre, tipo, num_sellos, premio ?? null, premios ? JSON.stringify(premios) : null,
-       diseno ? JSON.stringify(diseno) : null, caducidad_meses ?? null, telefono ?? null, direccion ?? null]
+      `INSERT INTO negocios (user_id, email, nombre, tipo, num_sellos, premio, premios, diseno, caducidad_meses, telefono, direccion)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [req.user.id, email ?? null, nombre, tipo ?? null, num_sellos ?? null, premio ?? null,
+       premios ? JSON.stringify(premios) : null, diseno ? JSON.stringify(diseno) : null,
+       caducidad_meses ?? null, telefono ?? null, direccion ?? null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
