@@ -11,10 +11,17 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'https://sello-app.vercel.app',
-    'http://localhost:5173',
-  ],
+  origin: (origin, callback) => {
+    const allowed = [
+      'https://sello-app.vercel.app',
+      'http://localhost:5173',
+    ];
+    if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS no permitido'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
